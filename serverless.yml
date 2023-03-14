@@ -1,0 +1,28 @@
+service: sms-task
+frameworkVersion: "3.28.1"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:
+        - arn:aws:sqs:eu-west-2:533322355632:sqsQueueOne
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: GET
+          path: /any/method
+  sendsqsmessage:
+    handler: sqs.sendsqsmessage
+    events:
+      - http:
+          method: POST
+          path: /sqs
+      environments: ${file(env.json)}
