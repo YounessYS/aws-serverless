@@ -9,20 +9,41 @@ provider:
     - Effect: Allow
       Action:
         - sqs:*
-      Resource:
-        - arn:aws:sqs:eu-west-2:533322355632:sqsQueueOne
+        - sns:*
+      Resource: "*"
+
+resources:
+  Resources:
+    sqsQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "sqsQueueOne"
+        MaximumMessageSize: 1024
+    snsTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        TopicName: "smsservice"
 
 functions:
   hello:
-    handler: handler.hello
+    handler: src/handlers/hello.handler
     events:
       - http:
           method: GET
           path: /any/method
   sendsqsmessage:
-    handler: sqs.sendsqsmessage
+    handler: src/handlers/sqs.sendMessage
+    environment:
+      SQS_QUEUE_URL: ${file(env.json):QUEUE_URL}
     events:
       - http:
           method: POST
           path: /sqs
-      environments: ${file(env.json)}
+  snsfromsqs:
+    handler: src/handlers/sns.sqsToSNS
+    environment:
+      SNS_TOPIC_ARN: ${file(env.json):SNS_TOPIC_ARN}
+    events:
+      - sqs:
+          arn: arn:aws:sqs:eu-west-2:533322355632:sqsQueueOne
+          batchSize: 1

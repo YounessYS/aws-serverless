@@ -4,9 +4,13 @@
   "description": "aws task for sending sms",
   "main": "handler.js",
   "dependencies": {
-    "aws-sdk": "^2.1334.0"
+    "aws-sdk": "^2.1334.0",
+    "pino": "^8.11.0"
   },
   "devDependencies": {
+    "aws-sdk-mock": "^5.8.0",
+    "jest": "^29.5.0",
+    "pino": "^8.11.0",
     "serverless": "^3.1.0"
   },
   "scripts": {
