@@ -1,15 +1,42 @@
 const AWS = require("aws-sdk");
 const pino = require("pino")();
+const validatePhoneNumber = require("../utils/validatePhoneNumber");
+const validateMessageBody = require("../utils/validateMessageBody");
 
 AWS.config.update({ region: "eu-west-2" });
 
-module.exports.sendMessage = async (event, queueURL) => {
+module.exports.sendMessage = async (event) => {
+  console.log(JSON.stringify(event));
   const sqs = new AWS.SQS();
+
+  const queueURL = process.env.SQS_QUEUE_URL;
+
+  const { phoneNumber, messageBody } = JSON.parse(event.body);
 
   // Logging that we're sending a message to SQS
   pino.info(`Sending message to SQS queue ${queueURL}`);
 
-  const messageBody = JSON.stringify(event.body);
+  // Check the phone number is valid
+  if (!validatePhoneNumber(phoneNumber)) {
+    pino.error(`Invalid phone number: ${phoneNumber}`);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({
+        message: `Invalid phone number: ${phoneNumber}`,
+      }),
+    };
+  }
+
+  // Check the message doesnt exceed 1024 bytes
+  if (!validateMessageBody(messageBody)) {
+    pino.error(`Message exceeds 1024 bytes: ${messageBody}`);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({
+        message: `Message exceeds 1024 bytes: ${messageBody}`,
+      }),
+    };
+  }
 
   try {
     // Send message to SQS
@@ -40,7 +67,7 @@ module.exports.sendMessage = async (event, queueURL) => {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: `Error sending message to SQS queue ${queueURL}: ${error.message}`,
+        message: `Error sending message to SQS ${queueURL}: ${error.message}`,
       }),
     };
   } finally {

@@ -1,6 +1,11 @@
 const { sqsToSNS } = require("../sns.js");
+const AWSMock = require("aws-sdk-mock");
 
 describe("sqsToSNS", () => {
+  afterEach(() => {
+    AWSMock.restore();
+  });
+
   test("should return a successful response when message is sent to SNS", async () => {
     const event = {
       Records: [
@@ -12,6 +17,8 @@ describe("sqsToSNS", () => {
         },
       ],
     };
+
+    AWSMock.mock("SNS", "publish", "test-message-id");
 
     const result = await sqsToSNS(event);
 

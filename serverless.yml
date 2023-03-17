@@ -26,13 +26,13 @@ resources:
 
 functions:
   hello:
-    handler: src/handlers/hello.handler
+    handler: src/lambdas/hello.handler
     events:
       - http:
           method: GET
           path: /any/method
   sendsqsmessage:
-    handler: src/handlers/sqs.sendMessage
+    handler: src/lambdas/sqs.sendMessage
     environment:
       SQS_QUEUE_URL: ${file(env.json):QUEUE_URL}
     events:
@@ -40,7 +40,7 @@ functions:
           method: POST
           path: /sqs
   snsfromsqs:
-    handler: src/handlers/sns.sqsToSNS
+    handler: src/lambdas/sns.sqsToSNS
     environment:
       SNS_TOPIC_ARN: ${file(env.json):SNS_TOPIC_ARN}
     events:
